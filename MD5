@@ -1,0 +1,17 @@
+a29c2263502675285db5d8810fc992c1 *DESCRIPTION
+4de6e0945a69a51d3611ffc897b6241b *NAMESPACE
+b8f0c109c5dd73aa3110bbefac909774 *R/RcppExports.R
+5d3d735b69371c7a9accbada7f2bf021 *R/aaa.R
+64067f9ccc6e37f9fbc3fc981c462d03 *R/mlmc.R
+907ec562ee008ef904939f9ad003d5ed *R/mlmc.test.R
+7f4724bad431595cd29f6b5c7c4577c4 *R/multiplot.R
+e218ba9ba5d58bed7fda2dc7be46a7c9 *R/opre_l.R
+f6f2777b7c06a116d5405d3191f184d8 *R/plot.mlmc.test.R
+04772120f0b1d66e0105e0ddae33785e *R/print.mlmc.test.R
+d64c744bb897b964a9932b4745dc8e2c *man/mcqmc06_l.Rd
+12d2316e247c810d367ecbcf00ff13d4 *man/mlmc.Rd
+480a7f9b24a1973eb96315a244117182 *man/mlmc.test.Rd
+854cd923d956489a85c2f928ac6f4c72 *man/opre_l.Rd
+59f6ae05e3b209d0e8a133e40a827c7e *man/plot.mlmc.test.Rd
+70185bfa11ed0e07d15d38a017941556 *src/RcppExports.cpp
+27640f80fc5d0ee3870a53a456ecbf92 *src/mcqmc06_l.cpp
