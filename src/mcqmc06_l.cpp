@@ -1,5 +1,5 @@
 // This code is derived and adapted from the original GPL-2 C++ version by
-// Mike Giles.  See http://people.maths.ox.ac.uk/~gilesm/mlmc/
+// Mike Giles.  See https://people.maths.ox.ac.uk/~gilesm/mlmc/
 
 #include <Rcpp.h>
 using namespace Rcpp;
@@ -8,29 +8,39 @@ using namespace Rcpp;
 
 //' Financial options using a Milstein discretisation
 //'
-//' Financial options based on scalar geometric Brownian motion, similar to
-//' Mike Giles' MCQMC06 paper, using a Milstein discretisation
+//' Financial options based on scalar geometric Brownian motion, similar to Mike Giles' MCQMC06 paper, Giles (2008), using a Milstein discretisation.
 //'
 //' This function is based on GPL-2 C++ code by Mike Giles.
 //'
-//' @param l the level to be simulated.
-//' @param N the number of samples to be computed.
-//' @param option the option type, between 1 and 5.  The options are: \describe{
-//'   \item{1 = European call;}{}
-//'   \item{2 = Asian call;}{}
-//'   \item{3 = lookback call;}{}
-//'   \item{4 = digital call;}{}
-//'   \item{5 = barrier call.}{}
-//' }
+//' @param l
+//'        the level to be simulated.
+//' @param N
+//'        the number of samples to be computed.
+//' @param option
+//'        the option type, between 1 and 5.
+//'        The options are:
+//'        \describe{
+//'          \item{1 = European call;}{}
+//'          \item{2 = Asian call;}{}
+//'          \item{3 = lookback call;}{}
+//'          \item{4 = digital call;}{}
+//'          \item{5 = barrier call.}{}
+//'        }
 //'
-//' @author Louis Aslett <aslett@stats.ox.ac.uk>
+//' @return A named list containing: \describe{
+//'           \item{\code{sums}}{is a vector of length six \eqn{\left(\sum Y_i, \sum Y_i^2, \sum Y_i^3, \sum Y_i^4, \sum X_i, \sum X_i^2\right)} where \eqn{Y_i} are iid simulations with expectation \eqn{E[P_0]} when \eqn{l=0} and expectation \eqn{E[P_l-P_{l-1}]} when \eqn{l>0}, and \eqn{X_i} are iid simulations with expectation \eqn{E[P_l]}.
+//'                              Note that only the first two components of this are used by the main \code{\link[=mlmc]{mlmc()}} driver, the full vector is used by \code{\link[=mlmc.test]{mlmc.test()}} for convergence tests etc;}
+//'           \item{\code{cost}}{is a scalar with the total cost of the paths simulated, computed as \eqn{N \times 2^l} for level \eqn{l}.}
+//'         }
+//'
+//' @author Louis Aslett <louis.aslett@durham.ac.uk>
 //' @author Mike Giles <Mike.Giles@maths.ox.ac.uk>
 //'
 //' @references
-//' M.B. Giles. 'Improved multilevel Monte Carlo convergence using the Milstein scheme', p.343-358 in \emph{Monte Carlo and Quasi-Monte Carlo Methods 2006}, Springer, 2007.
+//' Giles, M. (2008) 'Improved Multilevel Monte Carlo Convergence using the Milstein Scheme', in A. Keller, S. Heinrich, and H. Niederreiter (eds) \emph{Monte Carlo and Quasi-Monte Carlo Methods 2006}. Berlin, Heidelberg: Springer, pp. 343–358. Available at: \doi{10.1007/978-3-540-74496-2_20}.
 //'
 //' @examples
-//' \dontrun{
+//' \donttest{
 //' # These are similar to the MLMC tests for the MCQMC06 paper
 //' # using a Milstein discretisation with 2^l timesteps on level l
 //' #
@@ -39,42 +49,76 @@ using namespace Rcpp;
 //' # -- change in cost calculation
 //' # -- different random number generation
 //' # -- switch to S_0=100
+//' #
+//' # Note the following takes quite a while to run, for a toy example see after
+//' # this block.
 //'
-//' M    <- 2 # refinement cost factor
 //' N0   <- 200 # initial samples on coarse levels
 //' Lmin <- 2 # minimum refinement level
 //' Lmax <- 10 # maximum refinement level
 //'
 //' test.res <- list()
 //' for(option in 1:5) {
-//'   if(option==1) {
+//'   if(option == 1) {
 //'     cat("\n ---- Computing European call ---- \n")
 //'     N      <- 20000 # samples for convergence tests
 //'     L      <- 8 # levels for convergence tests
 //'     Eps    <- c(0.005, 0.01, 0.02, 0.05, 0.1)
-//'   } else if(option==2) {
+//'   } else if(option == 2) {
 //'     cat("\n ---- Computing Asian call ---- \n")
 //'     N      <- 20000 # samples for convergence tests
 //'     L      <- 8 # levels for convergence tests
 //'     Eps    <- c(0.005, 0.01, 0.02, 0.05, 0.1)
-//'   } else if(option==3) {
+//'   } else if(option == 3) {
 //'     cat("\n ---- Computing lookback call ---- \n")
 //'     N      <- 20000 # samples for convergence tests
 //'     L      <- 10 # levels for convergence tests
 //'     Eps    <- c(0.005, 0.01, 0.02, 0.05, 0.1)
-//'   } else if(option==4) {
+//'   } else if(option == 4) {
 //'     cat("\n ---- Computing digital call ---- \n")
 //'     N      <- 200000 # samples for convergence tests
 //'     L      <- 8 # levels for convergence tests
 //'     Eps    <- c(0.01, 0.02, 0.05, 0.1, 0.2)
-//'   } else if(option==5) {
+//'   } else if(option == 5) {
 //'     cat("\n ---- Computing barrier call ---- \n")
 //'     N      <- 200000 # samples for convergence tests
 //'     L      <- 8 # levels for convergence tests
 //'     Eps    <- c(0.005, 0.01, 0.02, 0.05, 0.1)
 //'   }
 //'
-//'   test.res[[option]] <- mlmc.test(mcqmc06_l, M, N, L, N0, Eps, Lmin, Lmax, option=option)
+//'   test.res[[option]] <- mlmc.test(mcqmc06_l, N, L, N0, Eps, Lmin, Lmax, option = option)
+//'
+//'   # print exact analytic value, based on S0=K
+//'   T   <- 1
+//'   r   <- 0.05
+//'   sig <- 0.2
+//'   K   <- 100
+//'   B   <- 0.85*K
+//'
+//'   k   <- 0.5*sig^2/r;
+//'   d1  <- (r+0.5*sig^2)*T / (sig*sqrt(T))
+//'   d2  <- (r-0.5*sig^2)*T / (sig*sqrt(T))
+//'   d3  <- (2*log(B/K) + (r+0.5*sig^2)*T) / (sig*sqrt(T))
+//'   d4  <- (2*log(B/K) + (r-0.5*sig^2)*T) / (sig*sqrt(T))
+//'
+//'   if(option == 1) {
+//'     val <- K*( pnorm(d1) - exp(-r*T)*pnorm(d2) )
+//'   } else if(option == 2) {
+//'     val <- NA
+//'   } else if(option == 3) {
+//'     val <- K*( pnorm(d1) - pnorm(-d1)*k - exp(-r*T)*(pnorm(d2) - pnorm(d2)*k) )
+//'   } else if(option == 4) {
+//'     val <- K*exp(-r*T)*pnorm(d2)
+//'   } else if(option == 5) {
+//'     val <- K*(                             pnorm(d1) - exp(-r*T)*pnorm(d2) -
+//'               ((K/B)^(1-1/k))*((B^2)/(K^2)*pnorm(d3) - exp(-r*T)*pnorm(d4)) )
+//'   }
+//'
+//'   if(is.na(val)) {
+//'     cat(sprintf("\n Exact value unknown, MLMC value: %f \n", test.res[[option]]$P[1]))
+//'   } else {
+//'     cat(sprintf("\n Exact value: %f, MLMC value: %f \n", val, test.res[[option]]$P[1]))
+//'   }
 //'
 //'   # plot results
 //'   plot(test.res[[option]])
@@ -82,23 +126,34 @@ using namespace Rcpp;
 //' }
 //'
 //' # The level sampler can be called directly to retrieve the relevant level sums:
-//' mcqmc06_l(l=7, N=10, option=1)
+//' mcqmc06_l(l = 7, N = 10, option = 1)
 //'
 //' @export
 // [[Rcpp::export]]
-NumericVector mcqmc06_l(int l, int N, int option) {
+List mcqmc06_l(int l, int N, int option) {
   RNGScope scope;
+
+  NumericVector sums(6);
+  NumericVector cost(1);
+
+  if(l < 0) {
+    stop("l must be >= 0\n");
+  }
+  if(N < 1) {
+    stop("N must be > 0\n");
+  }
+  if(option < 1 || option > 5) {
+    stop("option must be between 1 and 5 inclusive\n");
+  }
 
   int   nf, nc;
   double T, r, sig, B, hf, hc, X0, Xf, Xc, Af, Ac, Mf, Mc, Bf, Bc,
-  Xf0, Xc0, Xc1, vf, vc, dWc, ddW, Pf, Pc, dP, K;
+  Xf0 = 0.0, Xc0 = 0.0, Xc1, vf, vc, dWc, ddW, Pf, Pc, dP, K;
 
   double dWf[2], dIf[2], Lf[2];
 
   // ull   v1[3], v2[3];       // needed for RNG
   // float x1, x2 = nanf("");  // needed for Normal RNG
-
-  NumericVector sums(6);
 
   // initialise seeds
 
@@ -225,6 +280,11 @@ NumericVector mcqmc06_l(int l, int N, int option) {
     else if (option==5) {
       Pf  = Bf*fmax(0.0f,Xf-K);
       Pc  = Bc*fmax(0.0f,Xc-K);
+    } else {
+      // Should be impossible to reach here, but adding to hint to compiler
+      // these variables are never uninitialised
+      Pf = 0.0; Pc = 0.0;
+      stop("option must be between 1 and 5 inclusive\n");
     }
 
     dP  = exp(-r*T)*(Pf-Pc);
@@ -239,6 +299,10 @@ NumericVector mcqmc06_l(int l, int N, int option) {
     sums[3] += dP*dP*dP*dP;
     sums[4] += Pf;
     sums[5] += Pf*Pf;
+
+    cost[0] += nf; // add number of timesteps as cost
   }
-  return(sums);
+
+  return(List::create(Named("sums") = sums,
+                      Named("cost") = cost));
 }
