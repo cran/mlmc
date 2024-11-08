@@ -1,5 +1,8 @@
 # This code is derived and adapted from the original GPL-2 Matlab version by
 # Mike Giles.  See https://people.maths.ox.ac.uk/~gilesm/mlmc/
+# There is one key change, whereby alpha, beta, and gamma can be specified if
+# desired. If not specified then the behaviour is the same as the original
+# Matlab code.
 
 #' Multi-level Monte Carlo estimation test suite
 #'
@@ -25,27 +28,39 @@
 #'
 #'        See the function (and source code of) \code{\link[=opre_l]{opre_l()}} and \code{\link[=mcqmc06_l]{mcqmc06_l()}} in this package for an example of user supplied level samplers.
 #' @param N
-#'        number of samples to use in the tests
+#'        number of samples to use in convergence tests, kurtosis, telescoping sum check.
 #' @param L
-#'        number of levels to use in the tests
+#'        number of levels to use in convergence tests, kurtosis, telescoping sum check.
 #' @param N0
-#'        initial number of samples which are used for the first 3 levels and for any subsequent levels which are automatically added.
+#'        initial number of samples which are used for the first 3 levels and for any subsequent levels which are automatically added in the complexity tests.
 #'        Must be \eqn{> 0}.
 #' @param eps.v
-#'        a vector of one or more target accuracies for the tests.
+#'        a vector of one or more target accuracies for the complexity tests.
 #'        Must all be \eqn{> 0}.
 #' @param Lmin
-#'        the minimum level of refinement.
+#'        the minimum level of refinement for complexity tests.
 #'        Must be \eqn{\ge 2}.
 #' @param Lmax
-#'        the maximum level of refinement.
+#'        the maximum level of refinement for complexity tests.
 #'        Must be \eqn{\ge} \code{Lmin}.
-#' @param silent
-#'        set to TRUE to supress running output (identical output can still be printed by printing the return result)
+#' @param alpha
+#'        the weak error, \eqn{O(2^{-\alpha l})}.
+#'        Must be \eqn{> 0} if specified.
+#'        If \code{NA} then \code{alpha} will be estimated.
+#' @param beta
+#'        the variance, \eqn{O(2^{-\beta l})}.
+#'        Must be \eqn{> 0} if specified.
+#'        If \code{NA} then \code{beta} will be estimated.
+#' @param gamma
+#'        the sample cost, \eqn{O(2^{\gamma l})}.
+#'        Must be \eqn{> 0} if specified.
+#'        If \code{NA} then \code{gamma} will be estimated.
 #' @param parallel
 #'        if an integer is supplied, R will fork \code{parallel} parallel processes.
 #'        This is done for the convergence tests section by splitting the \code{N} samples as evenly as possible across cores when sampling each level.
 #'        This is also done for the MLMC complexity tests by passing the \code{parallel} argument on to the \code{\link[=mlmc]{mlmc()}} driver when targeting each accuracy level in \code{eps}.
+#' @param silent
+#'        set to TRUE to supress running output (identical output can still be printed by printing the return result)
 #' @param ...
 #'        additional arguments which are passed on when the user supplied \code{mlmc_l} function is called
 #'
@@ -93,9 +108,38 @@
 #'
 #' @importFrom stats lm
 #' @export
-mlmc.test <- function(mlmc_l, N, L, N0, eps.v, Lmin, Lmax, parallel = NA, silent = FALSE, ...) {
+mlmc.test <- function(mlmc_l, N, L, N0, eps.v, Lmin, Lmax, alpha = NA, beta = NA, gamma = NA, parallel = NA, silent = FALSE, ...) {
   if(silent)
     cat <- function(...) { }
+
+  # check parameters are acceptable
+  if(N<=0) {
+    stop("N must be > 0.")
+  }
+  if(L<0) {
+    stop("L must be >= 0.")
+  }
+  if(Lmin<2) {
+    stop("Lmin must be >= 2.")
+  }
+  if(Lmax<Lmin) {
+    stop("must have Lmax >= Lmin.")
+  }
+  if(N0<=0 || any(eps.v<=0)) {
+    stop("N0 and eps.v must be greater than zero.")
+  }
+  if(!is.na(alpha) && alpha<=0) {
+    stop("if specified, alpha must be greater than zero.  Set alpha to NA to automatically estimate.")
+  }
+  if(!is.na(beta) && beta<=0) {
+    stop("if specified, beta must be greater than zero.  Set beta to NA to automatically estimate.")
+  }
+  if(!is.na(gamma) && gamma<=0) {
+    stop("if specified, gamma must be greater than zero.  Set gamma to NA to automatically estimate.")
+  }
+  if(!is.na(parallel) && parallel<=0) {
+    stop("if specified, parallel must be greater than zero.")
+  }
 
   res <- within(list(), {
     N <- N
@@ -176,16 +220,39 @@ mlmc.test <- function(mlmc_l, N, L, N0, eps.v, Lmin, Lmax, parallel = NA, silent
     }
 
     # use linear regression to estimate alpha, beta and gamma
+    # if they are not specified
 
     L1 <- 2
     L2 <- L+1
-    alpha <- -lm(y~x, data.frame(y=log2(abs(del1[L1:L2])), x=L1:L2))$coefficients["x"]
-    beta  <- -lm(y~x, data.frame(y=log2(abs(var1[L1:L2])), x=L1:L2))$coefficients["x"]
-    gamma <- lm(y~x, data.frame(y=log2(abs(cost[L1:L2])), x=L1:L2))$coefficients["x"]
+    msg <- NULL
+    if(is.na(alpha)) {
+      alpha <- max(0.5, -lm(y~x, data.frame(y=log2(abs(del1[L1:L2])), x=L1:L2))$coefficients["x"])
+      msg <- c(msg, "alpha")
+    }
+    if(is.na(beta)) {
+      beta <- max(0.5, -lm(y~x, data.frame(y=log2(abs(var1[L1:L2])), x=L1:L2))$coefficients["x"])
+      msg <- c(msg, "beta")
+    }
+    if(is.na(gamma)) {
+      gamma <- max(0.5, lm(y~x, data.frame(y=log2(abs(cost[L1:L2])), x=L1:L2))$coefficients["x"])
+      msg <- c(msg, "gamma")
+    }
+    if(is.null(msg)) {
+      msg <- "All MLMC parameters specified by user"
+    } else {
+      if(length(msg) == 3) {
+        msg <- "Linear regression estimates of MLMC parameters"
+      } else {
+        msg <- paste0(paste0(msg, collapse = ", "),
+                      " estimated by linear regression; ",
+                      paste0(setdiff(c("alpha", "beta", "gamma"), msg), collapse = ", "),
+                      " user supplied")
+      }
+    }
 
-    cat("\n******************************************************\n")
-    cat("*** Linear regression estimates of MLMC parameters ***\n")
-    cat("******************************************************\n")
+    cat("\n****", paste0(rep("*", nchar(msg)), collapse = ""), "****\n", sep = "")
+    cat("*** ", msg, " ***\n", sep = "")
+    cat("****", paste0(rep("*", nchar(msg)), collapse = ""), "****\n", sep = "")
     cat(sprintf("\n alpha = %f  (exponent for MLMC weak convergence)\n", alpha))
     cat(sprintf(" beta  = %f  (exponent for MLMC variance) \n", beta))
     cat(sprintf(" gamma = %f  (exponent for MLMC cost) \n", gamma))

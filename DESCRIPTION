@@ -1,7 +1,7 @@
 Package: mlmc
 Type: Package
 Title: Multi-Level Monte Carlo
-Version: 2.0.2
+Version: 2.1.0
 Authors@R: c(
     person("Louis", "Aslett", email = "louis.aslett@durham.ac.uk",
            role = c("cre", "aut", "trl"),
@@ -29,10 +29,10 @@ RoxygenNote: 7.3.2
 Encoding: UTF-8
 LinkingTo: Rcpp
 NeedsCompilation: yes
-Packaged: 2024-08-31 10:43:18 UTC; louis
+Packaged: 2024-11-08 17:34:38 UTC; louis
 Author: Louis Aslett [cre, aut, trl] (<https://orcid.org/0000-0003-2211-233X>),
   Mike Giles [ctb] (<https://orcid.org/0000-0002-5445-3721>),
   Tigran Nagapetyan [ctb] (<https://orcid.org/0000-0002-0379-1157>),
   Sebastian Vollmer [ctb] (<https://orcid.org/0000-0003-2831-1401>)
 Repository: CRAN
-Date/Publication: 2024-09-04 13:20:02 UTC
+Date/Publication: 2024-11-08 18:20:02 UTC

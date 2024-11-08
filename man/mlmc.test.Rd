@@ -12,6 +12,9 @@ mlmc.test(
   eps.v,
   Lmin,
   Lmax,
+  alpha = NA,
+  beta = NA,
+  gamma = NA,
   parallel = NA,
   silent = FALSE,
   ...
@@ -33,21 +36,33 @@ mlmc.test(
 
        See the function (and source code of) \code{\link[=opre_l]{opre_l()}} and \code{\link[=mcqmc06_l]{mcqmc06_l()}} in this package for an example of user supplied level samplers.}
 
-\item{N}{number of samples to use in the tests}
+\item{N}{number of samples to use in convergence tests, kurtosis, telescoping sum check.}
 
-\item{L}{number of levels to use in the tests}
+\item{L}{number of levels to use in convergence tests, kurtosis, telescoping sum check.}
 
-\item{N0}{initial number of samples which are used for the first 3 levels and for any subsequent levels which are automatically added.
+\item{N0}{initial number of samples which are used for the first 3 levels and for any subsequent levels which are automatically added in the complexity tests.
 Must be \eqn{> 0}.}
 
-\item{eps.v}{a vector of one or more target accuracies for the tests.
+\item{eps.v}{a vector of one or more target accuracies for the complexity tests.
 Must all be \eqn{> 0}.}
 
-\item{Lmin}{the minimum level of refinement.
+\item{Lmin}{the minimum level of refinement for complexity tests.
 Must be \eqn{\ge 2}.}
 
-\item{Lmax}{the maximum level of refinement.
+\item{Lmax}{the maximum level of refinement for complexity tests.
 Must be \eqn{\ge} \code{Lmin}.}
+
+\item{alpha}{the weak error, \eqn{O(2^{-\alpha l})}.
+Must be \eqn{> 0} if specified.
+If \code{NA} then \code{alpha} will be estimated.}
+
+\item{beta}{the variance, \eqn{O(2^{-\beta l})}.
+Must be \eqn{> 0} if specified.
+If \code{NA} then \code{beta} will be estimated.}
+
+\item{gamma}{the sample cost, \eqn{O(2^{\gamma l})}.
+Must be \eqn{> 0} if specified.
+If \code{NA} then \code{gamma} will be estimated.}
 
 \item{parallel}{if an integer is supplied, R will fork \code{parallel} parallel processes.
 This is done for the convergence tests section by splitting the \code{N} samples as evenly as possible across cores when sampling each level.
