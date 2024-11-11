@@ -1,10 +1,10 @@
-9117777f6345d0011f2b37c9a9d4cd02 *DESCRIPTION
-4de6e0945a69a51d3611ffc897b6241b *NAMESPACE
-c10745c5d0ebbf20e08d2e802719f23f *NEWS.md
+ff522d896ea29b086c163207f9ecb595 *DESCRIPTION
+1a6f276973f177e982aad42892db5980 *NAMESPACE
+befa7bc903b380cf92a01b07643423fb *NEWS.md
 59a33868382f18e37df54fabea30ade3 *R/RcppExports.R
 5d3d735b69371c7a9accbada7f2bf021 *R/aaa.R
-4887cdbabbc3f45322d977305ded5e43 *R/mlmc.R
-3ea9041ad5c933d05c5ed576a728fc27 *R/mlmc.test.R
+f771170011dc4b525ccbf80ec6b41b00 *R/mlmc.R
+1cb7296d6662c837b6cc404be69531a8 *R/mlmc.test.R
 7f4724bad431595cd29f6b5c7c4577c4 *R/multiplot.R
 d1c567d3d3f523b2b4a4638e664d0fcc *R/opre_l.R
 d37f13591c891e41921f69c159286526 *R/plot.mlmc.test.R
@@ -12,7 +12,7 @@ d37f13591c891e41921f69c159286526 *R/plot.mlmc.test.R
 76161b65639451c966be75488458b3c3 *build/partial.rdb
 85f4a1f4a66d7fb9c5344b28e078fd72 *man/figures/logo.png
 e73a68cb4592b7044d57c2abc8a7f635 *man/mcqmc06_l.Rd
-a8798fd5664eb0cccae82dfd4d08b194 *man/mlmc.Rd
+9d648bac55d1436aa85bf9b172651cc4 *man/mlmc.Rd
 23a7f5d1706af32e215aea17df19db4a *man/mlmc.test.Rd
 824a618b15878d93a3a7f1f0d150fdea *man/opre_l.Rd
 fdbde1b797bddbad57bc950d426b416e *man/plot.mlmc.test.Rd
